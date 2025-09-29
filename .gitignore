@@ -2,4 +2,5 @@
 target
 result
 flake.lock
+.pre-commit-config.yaml
 
