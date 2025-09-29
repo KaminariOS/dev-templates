@@ -4,15 +4,15 @@
   inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
 
   inputs = {
-    pre-commit-hooks = {
-      url = "github:cachix/pre-commit-hooks.nix";
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
   outputs = {
     self,
-    pre-commit-hooks,
+    git-hooks,
     ...
   } @ inputs: let
     supportedSystems = [
@@ -72,6 +72,32 @@
         pkgs,
       }:
         pkgs.alejandra);
+      checks = forEachSupportedSystem (
+        {
+          pkgs,
+          system,
+        }: {
+          # eval-tests per system
+          # eval-tests = allSystems.${system}.evalTests == {};
+
+          pre-commit-check = git-hooks.lib.${system}.run {
+            src = ".";
+            hooks = {
+              alejandra.enable = true; # formatter
+              # Source code spell checker
+              # typos = {
+              #   enable = true;
+              #   settings = {
+              #     write = true; # Automatically fix typos
+              #     configPath = "./.typos.toml"; # relative to the flake root
+              #   };
+              # };
+              # deadnix.enable = true; # detect unused variable bindings in `*.nix`
+              # statix.enable = true; # lints and suggestions for Nix code(auto suggestions)
+            };
+          };
+        }
+      );
       devShells = forEachSupportedSystem (
         {
           pkgs,
@@ -84,6 +110,9 @@
                 check
               ]
               ++ [self.formatter.${system}];
+            shellHook = ''
+              ${self.checks.${system}.pre-commit-check.shellHook}
+            '';
           };
         }
       );
@@ -116,23 +145,7 @@
       );
     }
     // {
-      templates = let
-        addFormatter = tmpl:
-          tmpl
-          // {
-            devShells = forEachSupportedSystem (
-              {
-                pkgs,
-                system,
-              }: {
-                default = pkgs.mkShell {
-                  inputsFrom = tmpl.devShells.${system}.default or [];
-                  packages = [pkgs.nixfmt-rfc-style];
-                };
-              }
-            );
-          };
-      in rec {
+      templates = rec {
         default = empty;
 
         bun = {
@@ -280,7 +293,7 @@
           description = "Purescript development environment";
         };
 
-        python = addFormatter {
+        python = {
           path = ./python;
           description = "Python development environment";
         };
