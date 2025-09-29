@@ -1,43 +1,44 @@
 {
-  description = "A Nix-flake-based Python development environment";
+  description = "A Nix-flake-based Python development environment with pre-commit shell hook";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    git-hooks-nix.inputs.nixpkgs.follows = "nixpkgs";
+    git-hooks-nix.url = "github:cachix/git-hooks.nix";
+    flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs = inputs: let
-    supportedSystems = [
-      "x86_64-linux"
-      "aarch64-linux"
-      "x86_64-darwin"
-      "aarch64-darwin"
-    ];
-    forEachSupportedSystem = f:
-      inputs.nixpkgs.lib.genAttrs supportedSystems (
-        system:
-          f {
-            pkgs = import inputs.nixpkgs {inherit system;};
-          }
-      );
+  outputs = inputs @ {
+    self,
+    flake-parts,
+    ...
+  }:
+    flake-parts.lib.mkFlake {inherit inputs;} {
+      imports = [
+        inputs.git-hooks-nix.flakeModule
+      ];
 
-    /*
-    Change this value ({major}.{min}) to
-    update the Python virtual-environment
-    version. When you do this, make sure
-    to delete the `.venv` directory to
-    have the hook rebuild it for the new
-    version, since it won't overwrite an
-    existing one. After this, reload the
-    development shell to rebuild it.
-    You'll see a warning asking you to
-    do this when version mismatches are
-    present. For safety, removal should
-    be a manual step, even if trivial.
-    */
-    version = "3.12";
-  in {
-    devShells = forEachSupportedSystem (
-      {pkgs}: let
+      # Supported systems
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+
+      perSystem = {
+        config,
+        pkgs,
+        ...
+      }: let
+        /*
+        Change this value ({major}.{min}) to update the Python
+        virtual-environment version. If you bump this, delete
+        the `.venv` directory so the hook can rebuild it for
+        the new version. Then reload the dev shell.
+        */
+        version = "3.12";
+
         concatMajorMinor = v:
           pkgs.lib.pipe v [
             pkgs.lib.versions.splitVersion
@@ -47,20 +48,37 @@
 
         python = pkgs."python${concatMajorMinor version}";
       in {
-        default = pkgs.mkShell {
-          packages = with python.pkgs; [
-            uv
-            # Add whatever else you'd like here.
-            # pkgs.basedpyright
-
-            # pkgs.black
-            # or
-            # python.pkgs.black
-
-            ruff
-          ];
+        # Pre-commit hooks configuration
+        pre-commit.settings = {
+          # Add any hooks you want here; tools listed here are made available
+          # in the dev shell via `enabledPackages`.
+          hooks = {
+            nixpkgs-fmt.enable = true;
+            ruff.enable = true;
+            # black.enable = true;  # uncomment if you want black as well
+          };
         };
-      }
-    );
-  };
+
+        # Dev shell with shellHook installing pre-commit
+        devShells.default = pkgs.mkShell {
+          shellHook = ''
+            ${config.pre-commit.installationScript}
+            echo 1>&2 "Welcome to the development shell (Python ${version})!"
+          '';
+
+          # Tools needed for your workflow, plus anything required by hooks.
+          packages =
+            config.pre-commit.settings.enabledPackages
+            ++ [
+              python
+              python.pkgs.uv
+              # Add whatever else you'd like here.
+              # pkgs.basedpyright
+              # python.pkgs.black
+            ];
+        };
+      };
+
+      flake = {};
+    };
 }
