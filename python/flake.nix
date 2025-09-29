@@ -53,7 +53,7 @@
           # Add any hooks you want here; tools listed here are made available
           # in the dev shell via `enabledPackages`.
           hooks = {
-            nixpkgs-fmt.enable = true;
+            alejandra.enable = true;
             ruff.enable = true;
             # black.enable = true;  # uncomment if you want black as well
           };
