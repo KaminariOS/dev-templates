@@ -5,17 +5,17 @@
 To initialize (where `${ENV}` is listed in the table below):
 
 ```shell
-nix flake init --template "https://flakehub.com/f/the-nix-way/dev-templates/*#${ENV}"
+nix flake init -t github:KaminariOS/dev-templates#templates.${ENV}
 ```
 
 Here's an example (for the [`rust`](./rust) template):
 
 ```shell
 # Initialize in the current project
-nix flake init --template "https://flakehub.com/f/the-nix-way/dev-templates/*#rust"
+nix flake init -t github:KaminariOS/dev-templates#templates.python
 
 # Create a new project
-nix flake new --template "https://flakehub.com/f/the-nix-way/dev-templates/*#rust" ${NEW_PROJECT_DIRECTORY}
+nix flake new -t github:KaminariOS/dev-templates#templates.python ${NEW_PROJECT_DIRECTORY}
 ```
 
 ## How to use the templates

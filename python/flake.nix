@@ -1,7 +1,9 @@
 {
   description = "A Nix-flake-based Python development environment";
 
-  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  };
 
   outputs =
     inputs:
@@ -35,7 +37,7 @@
         present. For safety, removal should
         be a manual step, even if trivial.
       */
-      version = "3.13";
+      version = "3.12";
     in
     {
       devShells = forEachSupportedSystem (
@@ -53,28 +55,9 @@
         in
         {
           default = pkgs.mkShell {
-            venvDir = ".venv";
-
-            postShellHook = ''
-              venvVersionWarn() {
-              	local venvVersion
-              	venvVersion="$("$venvDir/bin/python" -c 'import platform; print(platform.python_version())')"
-
-              	[[ "$venvVersion" == "${python.version}" ]] && return
-
-              	cat <<EOF
-              Warning: Python version mismatch: [$venvVersion (venv)] != [${python.version}]
-                       Delete '$venvDir' and reload to rebuild for version ${python.version}
-              EOF
-              }
-
-              venvVersionWarn
-            '';
 
             packages = with python.pkgs; [
-              venvShellHook
-              pip
-
+              uv
               # Add whatever else you'd like here.
               # pkgs.basedpyright
 
@@ -82,9 +65,7 @@
               # or
               # python.pkgs.black
 
-              # pkgs.ruff
-              # or
-              # python.pkgs.ruff
+              ruff
             ];
           };
         }
