@@ -1,0 +1,4 @@
+nimcache/
+nimblecache/
+htmldocs/
+.pre-commit-config.yaml
