@@ -66,6 +66,8 @@
             echo 1>&2 "Welcome to the development shell (Python ${version})!"
           '';
 
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [pkgs.stdenv.cc.cc pkgs.zlib];
+
           # Tools needed for your workflow, plus anything required by hooks.
           packages =
             config.pre-commit.settings.enabledPackages
