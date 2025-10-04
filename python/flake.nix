@@ -73,11 +73,13 @@
             config.pre-commit.settings.enabledPackages
             ++ [
               python
-              python.pkgs.uv
               # Add whatever else you'd like here.
               # pkgs.basedpyright
               # python.pkgs.black
-            ];
+            ]
+            ++ (
+              with pkgs; [uv]
+            );
         };
       };
 
