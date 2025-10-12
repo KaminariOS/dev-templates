@@ -43,7 +43,8 @@
 
         # Convenience handles
         maven = pkgs.maven;
-        gradle = pkgs.gradle;
+        gradle = pkgs.callPackage pkgs.gradle.override {javaToolchains = [jdkPackage];};
+
         jdtls = pkgs.jdt-language-server;
       in {
         # Make `nix fmt` work like in the Python flake
