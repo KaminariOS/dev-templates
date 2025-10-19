@@ -1,3 +1,4 @@
+# Adapted from https://github.com/mschoder/nix-cuda-template
 # This flake provides a skeleton dev environment for PyTorch with CUDA support and for CUDA development /
 # compilation with NVCC.
 #
