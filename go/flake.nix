@@ -57,7 +57,7 @@
               files = "\\.go$";
             };
             golangci-lint = {
-              enable = true;
+              # enable = true;
               name = "golangci-lint";
               entry = "${pkgs.golangci-lint}/bin/golangci-lint run --fix=false";
               language = "system";
