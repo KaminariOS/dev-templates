@@ -298,6 +298,11 @@
           description = "Python development environment";
         };
 
+        pytorch = {
+          path = ./pytorch;
+          description = "Pytorch development environment";
+        };
+
         r = {
           path = ./r;
           description = "R development environment";
